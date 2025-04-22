@@ -11,7 +11,7 @@ const NormalZodValidationPipe = createZodValidationPipe({
         ...error,
         path: error.path.join('.'),
       }
-    })
+    }) as any
   },
 })
 
