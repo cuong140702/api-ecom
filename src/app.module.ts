@@ -22,6 +22,7 @@ import { CategoryTranslationModule } from 'src/routes/category/category-translat
 import { ProductModule } from 'src/routes/product/product.module'
 import { ProductTranslationModule } from 'src/routes/product/product-translation/product-translation.module'
 import { CustomZodSerializerInterceptor } from './shared/interceptor/transform.interceptor'
+import { CartModule } from './routes/cart/cart.module'
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CustomZodSerializerInterceptor } from './shared/interceptor/transform.i
     CategoryTranslationModule,
     ProductModule,
     ProductTranslationModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [
