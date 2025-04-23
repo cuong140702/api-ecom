@@ -4,9 +4,9 @@ import {
   CreateProductBodyType,
   GetProductDetailResType,
   GetProductsResType,
-  ProductType,
   UpdateProductBodyType,
 } from 'src/routes/product/product.model'
+import { ProductType } from 'src/shared/models/shared-product.model'
 import { ALL_LANGUAGE_CODE, OrderByType, SortBy, SortByType } from 'src/shared/constants/other.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
