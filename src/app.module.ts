@@ -23,6 +23,7 @@ import { ProductModule } from 'src/routes/product/product.module'
 import { ProductTranslationModule } from 'src/routes/product/product-translation/product-translation.module'
 import { CustomZodSerializerInterceptor } from './shared/interceptor/transform.interceptor'
 import { CartModule } from './routes/cart/cart.module'
+import { OrderModule } from 'src/routes/order/order.module'
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { CartModule } from './routes/cart/cart.module'
     ProductModule,
     ProductTranslationModule,
     CartModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [
