@@ -3,7 +3,6 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { SharedModule } from './shared/shared.module'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
-import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod'
 import { AuthModule } from './routes/auth/auth.module'
 import CustomZodValidationPipe from './shared/pipes/custom-zod-validation.pipe'
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
@@ -24,6 +23,7 @@ import { ProductTranslationModule } from 'src/routes/product/product-translation
 import { CustomZodSerializerInterceptor } from './shared/interceptor/transform.interceptor'
 import { CartModule } from './routes/cart/cart.module'
 import { OrderModule } from 'src/routes/order/order.module'
+import { PaymentModule } from 'src/routes/payment/payment.module'
 
 @Module({
   imports: [
@@ -52,6 +52,7 @@ import { OrderModule } from 'src/routes/order/order.module'
     ProductTranslationModule,
     CartModule,
     OrderModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [
