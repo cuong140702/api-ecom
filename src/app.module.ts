@@ -24,9 +24,19 @@ import { CustomZodSerializerInterceptor } from './shared/interceptor/transform.i
 import { CartModule } from './routes/cart/cart.module'
 import { OrderModule } from 'src/routes/order/order.module'
 import { PaymentModule } from 'src/routes/payment/payment.module'
+import { BullModule } from '@nestjs/bullmq'
+import { PaymentConsumer } from './queues/payment.consumer'
 
 @Module({
   imports: [
+    BullModule.forRoot({
+      connection: {
+        host: 'redis-13450.c1.ap-southeast-1-1.ec2.redns.redis-cloud.com',
+        port: 13450,
+        username: 'default',
+        password: 'TCwxURyLTH9nljUpLLZNN4Jy0dnD786n',
+      },
+    }),
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
@@ -66,6 +76,7 @@ import { PaymentModule } from 'src/routes/payment/payment.module'
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    PaymentConsumer,
   ],
 })
 export class AppModule {}
