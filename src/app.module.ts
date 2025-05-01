@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { SharedModule } from './shared/shared.module'
+import { SharedModule } from 'src/shared/shared.module'
+import { AuthModule } from 'src/routes/auth/auth.module'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
-import { AuthModule } from './routes/auth/auth.module'
-import CustomZodValidationPipe from './shared/pipes/custom-zod-validation.pipe'
-import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
+import CustomZodValidationPipe from 'src/shared/pipes/custom-zod-validation.pipe'
+import { ZodSerializerInterceptor } from 'nestjs-zod'
+import { HttpExceptionFilter } from 'src/shared/filters/http-exception.filter'
 import { LanguageModule } from 'src/routes/language/language.module'
 import { PermissionModule } from 'src/routes/permission/permission.module'
 import { RoleModule } from 'src/routes/role/role.module'
@@ -20,21 +21,18 @@ import { CategoryModule } from 'src/routes/category/category.module'
 import { CategoryTranslationModule } from 'src/routes/category/category-translation/category-translation.module'
 import { ProductModule } from 'src/routes/product/product.module'
 import { ProductTranslationModule } from 'src/routes/product/product-translation/product-translation.module'
-import { CustomZodSerializerInterceptor } from './shared/interceptor/transform.interceptor'
-import { CartModule } from './routes/cart/cart.module'
+import { CartModule } from 'src/routes/cart/cart.module'
 import { OrderModule } from 'src/routes/order/order.module'
 import { PaymentModule } from 'src/routes/payment/payment.module'
 import { BullModule } from '@nestjs/bullmq'
-import { PaymentConsumer } from './queues/payment.consumer'
+import { PaymentConsumer } from 'src/queues/payment.consumer'
+import envConfig from 'src/shared/config'
 
 @Module({
   imports: [
     BullModule.forRoot({
       connection: {
-        host: 'redis-13450.c1.ap-southeast-1-1.ec2.redns.redis-cloud.com',
-        port: 13450,
-        username: 'default',
-        password: 'TCwxURyLTH9nljUpLLZNN4Jy0dnD786n',
+        url: envConfig.REDIS_URL,
       },
     }),
     I18nModule.forRoot({
@@ -71,7 +69,7 @@ import { PaymentConsumer } from './queues/payment.consumer'
       provide: APP_PIPE,
       useClass: CustomZodValidationPipe,
     },
-    { provide: APP_INTERCEPTOR, useClass: CustomZodSerializerInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
