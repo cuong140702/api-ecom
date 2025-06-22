@@ -3,7 +3,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { SharedModule } from 'src/shared/shared.module'
 import { AuthModule } from 'src/routes/auth/auth.module'
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import CustomZodValidationPipe from 'src/shared/pipes/custom-zod-validation.pipe'
 import { ZodSerializerInterceptor } from 'nestjs-zod'
 import { HttpExceptionFilter } from 'src/shared/filters/http-exception.filter'
@@ -27,9 +27,20 @@ import { PaymentModule } from 'src/routes/payment/payment.module'
 import { BullModule } from '@nestjs/bullmq'
 import { PaymentConsumer } from 'src/queues/payment.consumer'
 import envConfig from 'src/shared/config'
+import { WebsocketModule } from 'src/websockets/websocket.module'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerBehindProxyGuard } from './shared/guards/throttler-behind-proxy.guard'
+import { ReviewModule } from './routes/review/review.module'
+import { ScheduleModule } from '@nestjs/schedule'
+import { RemoveRefreshTokenCronjob } from './cronjobs/remove-refresh-token.cronjob'
+import { CacheModule } from '@nestjs/cache-manager'
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+    }),
+    ScheduleModule.forRoot(),
     BullModule.forRoot({
       connection: {
         url: envConfig.REDIS_URL,
@@ -44,6 +55,15 @@ import envConfig from 'src/shared/config'
       resolvers: [{ use: QueryResolver, options: ['lang'] }, AcceptLanguageResolver],
       typesOutputPath: path.resolve('src/generated/i18n.generated.ts'),
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
+    WebsocketModule,
     SharedModule,
     AuthModule,
     LanguageModule,
@@ -61,6 +81,7 @@ import envConfig from 'src/shared/config'
     CartModule,
     OrderModule,
     PaymentModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [
@@ -74,7 +95,12 @@ import envConfig from 'src/shared/config'
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,
+    },
     PaymentConsumer,
+    RemoveRefreshTokenCronjob,
   ],
 })
 export class AppModule {}

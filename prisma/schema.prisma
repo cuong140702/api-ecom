@@ -91,6 +91,7 @@ model User {
   userTranslations            UserTranslation[]     @relation("User")
   sentMessages                Message[]             @relation("FromUser")
   receivedMessages            Message[]             @relation("ToUser")
+  webSockets                  Websocket[]
 
   // 1 user có thể tạo ra nhiều user khác
   // 1 user chỉ có thể được tạo ra bởi 1 user khác
@@ -145,7 +146,7 @@ model VerificationCode {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  @@unique([email, code, type])
+  @@unique([email, type])
   @@index([expiresAt])
 }
 
@@ -433,6 +434,7 @@ model Order {
   status      OrderStatus
   items       ProductSKUSnapshot[]
   products    Product[]
+  reviews     Review[]
   /// [Receiver]
   receiver    Json
   shopId      Int?
@@ -462,17 +464,42 @@ model Payment {
   updatedAt DateTime      @updatedAt
 }
 
-model Review {
-  id        Int     @id @default(autoincrement())
-  content   String
-  rating    Int
-  productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Websocket {
+  id        String   @id
   userId    Int
-  user      User    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id          Int           @id @default(autoincrement())
+  content     String
+  rating      Int
+  orderId     Int
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  productId   Int
+  product     Product       @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  medias      ReviewMedia[]
+  updateCount Int           @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([orderId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model ReviewMedia {
+  id       Int       @id @default(autoincrement())
+  url      String    @db.VarChar(1000)
+  type     MediaType
+  reviewId Int
+  review   Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  createdAt DateTime @default(now())
 }
 
 model PaymentTransaction {
@@ -540,4 +567,9 @@ enum HTTPMethod {
   PATCH
   OPTIONS
   HEAD
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
 }

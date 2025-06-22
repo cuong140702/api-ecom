@@ -29,6 +29,7 @@ export class OrderRepo {
   ) {}
   async list(userId: number, query: GetOrderListQueryType): Promise<GetOrderListResType> {
     const { page, limit, status } = query
+
     const skip = (page - 1) * limit
     const take = limit
     const where: Prisma.OrderWhereInput = {
@@ -67,7 +68,7 @@ export class OrderRepo {
     body: CreateOrderBodyType,
   ): Promise<{
     paymentId: number
-    orders: CreateOrderResType['data']
+    orders: CreateOrderResType['orders']
   }> {
     // 1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
     // 2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
