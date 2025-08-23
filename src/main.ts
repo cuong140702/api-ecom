@@ -4,11 +4,17 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { WebsocketAdapter } from 'src/websockets/websocket.adapter'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { patchNestJsSwagger } from 'nestjs-zod'
+import helmet from 'helmet'
+// import { LoggingInterceptor } from 'src/shared/interceptor/logging.interceptor'
+import { Logger } from 'nestjs-pino'
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule)
-  app.set('trust proxy', 'loopback')
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true })
+  app.useLogger(app.get(Logger))
+  app.set('trust proxy', 'loopback') // Trust requests from the loopback address
   app.enableCors()
+  app.use(helmet())
+  // app.useGlobalInterceptors(new LoggingInterceptor())
   patchNestJsSwagger()
   const config = new DocumentBuilder()
     .setTitle('Ecommerce API')
@@ -29,6 +35,7 @@ async function bootstrap() {
       persistAuthorization: true,
     },
   })
+
   const websocketAdapter = new WebsocketAdapter(app)
   await websocketAdapter.connectToRedis()
   app.useWebSocketAdapter(websocketAdapter)

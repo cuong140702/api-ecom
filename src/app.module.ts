@@ -29,16 +29,48 @@ import { PaymentConsumer } from 'src/queues/payment.consumer'
 import envConfig from 'src/shared/config'
 import { WebsocketModule } from 'src/websockets/websocket.module'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
-import { ThrottlerBehindProxyGuard } from './shared/guards/throttler-behind-proxy.guard'
-import { ReviewModule } from './routes/review/review.module'
+import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-proxy.guard'
+import { ReviewModule } from 'src/routes/review/review.module'
 import { ScheduleModule } from '@nestjs/schedule'
-import { RemoveRefreshTokenCronjob } from './cronjobs/remove-refresh-token.cronjob'
+import { RemoveRefreshTokenCronjob } from 'src/cronjobs/remove-refresh-token.cronjob'
 import { CacheModule } from '@nestjs/cache-manager'
+import { createKeyv } from '@keyv/redis'
+import { LoggerModule } from 'nestjs-pino'
+import pino from 'pino'
 
 @Module({
   imports: [
-    CacheModule.register({
+    LoggerModule.forRoot({
+      pinoHttp: {
+        serializers: {
+          req(req: any) {
+            return {
+              method: req.method,
+              url: req.url,
+              query: req.query,
+              params: req.params,
+            }
+          },
+          res(res: any) {
+            return {
+              statusCode: res.statusCode,
+            }
+          },
+        },
+        stream: pino.destination({
+          dest: path.resolve('logs/app.log'),
+          sync: false, // Asynchronous logging
+          mkdir: true, // Create the directory if it doesn't exist
+        }),
+      },
+    }),
+    CacheModule.registerAsync({
       isGlobal: true,
+      useFactory: () => {
+        return {
+          stores: [createKeyv(envConfig.REDIS_URL)],
+        }
+      },
     }),
     ScheduleModule.forRoot(),
     BullModule.forRoot({
@@ -58,8 +90,14 @@ import { CacheModule } from '@nestjs/cache-manager'
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          ttl: 60000,
-          limit: 10,
+          name: 'short',
+          ttl: 60000, // 1 minute
+          limit: 5,
+        },
+        {
+          name: 'long',
+          ttl: 120000, // 2 minutes
+          limit: 7,
         },
       ],
     }),
